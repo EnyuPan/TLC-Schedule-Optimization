@@ -60,11 +60,11 @@ availability_constr(unavailable_spots) = x(unavailable_spots) == 0;
 
 % no multiple bookings at the same time constraint (the same tutor should
 % not be on the schedule for different subjects or different campuses at
-% the same time slot
+% the same time slot)
 no_multiple_bookings_constr = sum(x, [3, 4]) <= 1;
 
 % no consecutive time slots at different campuses (each contiguous shift
-% must take place at the same campus
+% must take place at the same campus)
 campus_pairs = nchoosek(1:num_campuses, 2); % list of distinct campus pairs l_1 and l_2
 for r = 1:size(campus_pairs, 1)
     l1 = campus_pairs(r, 1);
