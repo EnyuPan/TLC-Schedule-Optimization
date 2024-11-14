@@ -1,0 +1,17 @@
+const tutors = ["Andy", "Anjelica", "Areej", "Arianna", "Arnav", "Bernardo", "Caden", "Candice", "David", "Elahe", "Gaya", "Glynne", "Jeremy",
+	"Kunal", "Lauren", "Linda", "Mariia", "Mikaela", "Mownika", "Naira", "Nowreen", "Prabhjot", "Reenu", "Riley", "Ripa", "Sami",
+	"Satareh", "Tanvir", "Toby", "Toren", "Vachara", "Yolanda", "You Li", "Aarushi", "Darrel", "Shiv", "Julia", "Grady", "Vanessa",
+	"Basma", "Gozde", "Enyu", "Miranda", "Tiffany", "Nima", "Rubia", "Ngan", "Sarah", "Catalina", "Sebastian", "Ivan", "Rachel", "Yuntan"
+];
+
+function setup() {
+	desired_hours = []
+	for (let tutor of tutors) {
+		desired_hours.push(tutor + "," + str(int(random(2, 25))));
+	}
+	print(desired_hours);
+}
+
+function keyPressed() {
+	save(desired_hours, "desired_hours.csv");
+}
