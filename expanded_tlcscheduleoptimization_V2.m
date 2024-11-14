@@ -14,6 +14,7 @@ in_person_opening_time = 3; % in-person schedules start at 10 AM each day, which
 in_person_closing_time = 16; % in-person schedules end at 5 PM each day, so the last time slot available is the 16th of each day
 
 % import data as 2D cell arrays
+fprintf("Importing demand and availability spreadsheets...\n")
 demand_cells = readcell('demand_matrix_3d.csv');
 availability_cells = readcell('availability_matrix_4d.csv');
 
@@ -25,6 +26,7 @@ subject_names = availability_cells(2:num_tutors+1:2+num_tutors*num_subjects, 1)'
 campus_names = demand_cells(1:num_subjects+1:1+num_subjects*num_campuses, 1)';
 
 % construct demand matrix
+fprintf("Constructing demand matrix...")
 demand = zeros(num_timeslots, num_subjects, num_campuses);
 for l = 1:num_campuses
     campus_start = 1 + (num_subjects + 1) * (l - 1); % the row number on which data for this campus begins
@@ -32,6 +34,7 @@ for l = 1:num_campuses
 end
 
 % construct availability matrix
+fprintf("Constructing availability matrix...\n")
 availability = zeros(num_tutors, num_timeslots, num_subjects, num_campuses);
 for l = 1:num_campuses
     campus_start = 1 + ((num_tutors + 1) * num_subjects + 1) * (l - 1);
@@ -42,7 +45,9 @@ for l = 1:num_campuses
 end
 
 % decision variables
-x = optimvar('x', num_tutors, num_timeslots, num_subjects, num_campuses, 'Type', 'integer', 'LowerBound', 0, 'UpperBound', 1);
+% Note: for efficiency purposes, each variable is not required to be
+% integer. The optimization problem would be too large otherwise
+x = optimvar('x', num_tutors, num_timeslots, num_subjects, num_campuses, 'LowerBound', 0, 'UpperBound', 1);
 
 % setting up constraints
 availability_constr = optimconstr(num_tutors, num_timeslots, num_subjects, num_campuses);
@@ -55,16 +60,19 @@ break_constr = optimconstr(num_tutors, num_days-1, num_daily_timeslots);
 
 % availability constraint (tutors should not work in spots where they are
 % marked as 0 in the availability matrix)
+fprintf("Setting up availability constraints...\n")
 unavailable_spots = availability == 0; % all indices at which the availability matrix is 0
 availability_constr(unavailable_spots) = x(unavailable_spots) == 0;
 
 % no multiple bookings at the same time constraint (the same tutor should
 % not be on the schedule for different subjects or different campuses at
 % the same time slot)
+fprintf("Setting up no-multiple-bookings constraints...\n")
 no_multiple_bookings_constr = sum(x, [3, 4]) <= 1;
 
 % no consecutive time slots at different campuses (each contiguous shift
 % must take place at the same campus)
+fprintf("Setting up no-consecutive-timeslots-at-different-campuses constraints...\n")
 campus_pairs = nchoosek(1:num_campuses, 2); % list of distinct campus pairs l_1 and l_2
 for r = 1:size(campus_pairs, 1)
     l1 = campus_pairs(r, 1);
@@ -78,16 +86,20 @@ end
 
 % To be implemented: in-person_constr, weekly_max_constr, daily_max_constr, break_constr
 
+% To be formulated: minimum per day/week constraint
+
 % optimization problem
+fprintf("Creating optimization problem...\n")
 prob = optimproblem('ObjectiveSense', 'minimize');
 prob.Objective = sum((demand - squeeze(sum(x, 1))).^2, 'all');
 prob.Constraints.availability_constr = availability_constr;
 prob.Constraints.no_multiple_bookings_constr = no_multiple_bookings_constr;
-%prob.Constraints.no_consecutive_at_different_campuses_constr = no_consecutive_at_different_campuses_constr;
+prob.Constraints.no_consecutive_at_different_campuses_constr = no_consecutive_at_different_campuses_constr;
 %prob.Constraints.in_person_constr = in_person_constr;
 %prob.Constraints.weekly_max_constr = weekly_max_constr;
 %prob.Constraints.daily_max_constr = daily_max_constr;
 %prob.Constraints.break_constr = break_constr;
 
 % solve the problem
-%sol = solve(prob);
+sol = solve(prob);
+sol.x(:,1,1,1)
