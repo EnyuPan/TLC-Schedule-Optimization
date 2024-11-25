@@ -1,0 +1,10 @@
+{
+    "tutors": ["Andy", "Anjelica", "Areej", "Arianna", "Arnav", "Bernardo", "Caden", "Candice", "David", "Elahe", "Gaya", "Glynne", "Jeremy",
+	"Kunal", "Lauren", "Linda", "Mariia", "Mikaela", "Mownika", "Naira", "Nowreen", "Prabhjot", "Reenu", "Riley", "Ripa", "Sami",
+	"Satareh", "Tanvir", "Toby", "Toren", "Vachara", "Yolanda", "You Li", "Aarushi", "Darrel", "Shiv", "Julia", "Grady", "Vanessa",
+	"Basma", "Gozde", "Enyu", "Miranda", "Tiffany", "Nima", "Rubia", "Ngan", "Sarah", "Catalina", "Sebastian", "Ivan", "Rachel", "Yuntan"
+    ],
+    "days": ["Mon", "Tue", "Wed", "Thurs", "Fri", "Sat", "Sun"],
+    "subjects": ["English", "Math", "Accounting", "Study Skills", "AutoCAD", "Pharmacology"],
+    "campuses": ["Online", "200 King", "Casa Loma", "Waterfront", "341 King", "TMU"]
+}
