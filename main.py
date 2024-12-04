@@ -26,9 +26,9 @@ start_time = time.time()
 import cvxpy
 print("module imported: cvxpy, time used: " + str(time.time() - start_time) + " seconds")
 
-start_time = time.time()
-from dask.diagnostics import ProgressBar
-print("module imported: dask.diagnostics, time used: " + str(time.time() - start_time) + " seconds")
+# start_time = time.time()
+# from dask.diagnostics import ProgressBar
+# print("module imported: dask.diagnostics, time used: " + str(time.time() - start_time) + " seconds")
 
 # Toggle the campus dimension
 consider_campuses = False
@@ -68,7 +68,7 @@ try:
         availability_cells = pd.read_csv("Lite version/availability_matrix_3d.csv", header=None)
     desired_hours_cells = pd.read_csv("desired_hours.csv", header=None)
 except Exception as error:
-    print(error)
+    print("Error when reading csv files", error)
     input("Press ENTER to exit")
     exit()
 
@@ -83,7 +83,7 @@ else:
     timeslot_names = availability_cells.iloc[0, 1:].to_numpy()
     subject_names = demand_cells.iloc[1:1+num_subjects, 0].to_numpy()
 
-# Construct demand matrix (3D)
+# Construct demand matrix
 print("Constructing demand matrix...")
 if consider_campuses:
     demand = np.zeros((num_timeslots, num_subjects, num_campuses))
@@ -93,7 +93,7 @@ if consider_campuses:
 else:
     demand = demand_cells.iloc[1:num_subjects+1, 1:num_timeslots+1].T.to_numpy()
 
-# Construct availability matrix (4D)
+# Construct availability matrix
 print("Constructing availability matrix...")
 if consider_campuses:
     availability = np.zeros((num_tutors, num_timeslots, num_subjects, num_campuses))
@@ -108,6 +108,9 @@ else:
         subject_start = 1 + (num_tutors + 1) * k
         availability[:, :, k] = availability_cells.iloc[subject_start:subject_start+num_tutors,1:num_timeslots+1]
 
+# Construct desired hours matrix
+desired_hours = desired_hours_cells.iloc[:, 1].to_numpy()
+
 #TODO: use absolute path referencing with the csv files
 
 # Decision variables
@@ -116,7 +119,6 @@ if consider_campuses:
 else:
     x = cvxpy.Variable((num_tutors, num_timeslots, num_subjects), boolean=True)
 
-# assuming that consider_campus = FALSE
 print("Setting up availability constraints...")
 availability_constr = []
 for i in range(num_tutors):
@@ -132,43 +134,79 @@ for i in range(num_tutors):
 
 print("Setting up no-multiple-bookings constraints...")
 no_multiple_bookings_constr = []
-for i in range(num_tutors):
-    for j in range(num_timeslots):
-        if consider_campuses:
+if consider_campuses:
+    for i in range(num_tutors):
+        for j in range(num_timeslots):
             no_multiple_bookings_constr.append(cvxpy.sum(x[i, j, :, :]) <= 1)
-        else:
+else:
+    for i in range(num_tutors):
+        for j in range(num_timeslots):
             no_multiple_bookings_constr.append(cvxpy.sum(x[i, j, :]) <= 1)
 
 print("Setting up weekly maximum constraints...")
 weekly_max_constr = []
-for i in range(num_tutors):
-    if consider_campuses:
+if consider_campuses:
+    for i in range(num_tutors):
         weekly_max_constr.append(cvxpy.sum(x[i, :, :, :]) <= weekly_limit)
-    else:
+else:
+    for i in range(num_tutors):
         weekly_max_constr.append(cvxpy.sum(x[i, :, :]) <= weekly_limit)
+
+print("Setting up daily maximum constraints...")
+daily_max_constr = []
+if consider_campuses:
+    for d in range(num_days):
+        daily_max_constr.append(cvxpy.sum(x[:, num_daily_timeslots * d:num_daily_timeslots * (d + 1), :, :],\
+            axis=(1, 2, 3)) <= daily_limit)
+else:
+    for d in range(num_days):
+        daily_max_constr.append(cvxpy.sum(x[:, num_daily_timeslots * d:num_daily_timeslots * (d + 1), :],\
+            axis=(1, 2)) <= daily_limit)
+
+print("Setting up break constraints...")
+break_constr = []
+if consider_campuses:
+    for d in range(num_days):
+        for t in range(num_daily_timeslots - consecutive_time_limit):
+            break_constr.append(cvxpy.sum(x[:, num_daily_timeslots * d + t:num_daily_timeslots * d + t + consecutive_time_limit + 1, :, :],\
+                axis=(1, 2, 3)) <= consecutive_time_limit)
+else:
+    for d in range(num_days):
+        for t in range(num_daily_timeslots - consecutive_time_limit):
+            break_constr.append(cvxpy.sum(x[:, num_daily_timeslots * d + t:num_daily_timeslots * d + t + consecutive_time_limit + 1, :],\
+                axis=(1, 2)) <= consecutive_time_limit)
+
+print("Setting up desired hours constraints...")
+desired_hours_constr = []
+if consider_campuses:
+    desired_hours_constr.append(cvxpy.sum(x, axis=(1, 2, 3)) <= desired_hours)
+else:
+    desired_hours_constr.append(cvxpy.sum(x, axis=(1, 2)) <= desired_hours)
+
+print("Setting up budget constraint...")
+budget_constr = []
+budget_constr.append(cvxpy.sum(x) <= budget)
 
 # Optimization problem
 print("Creating optimization problem...")
 
 # objective = cvxpy.Minimize(cvxpy.sum_squares(demand - cvxpy.sum(x, axis=0)))
 objective = cvxpy.Minimize(cvxpy.sum(demand - cvxpy.sum(x, axis=0)))
-
-# cost = 0
-# for j in range(num_timeslots):
-#     for k in range(num_subjects):
-#         if consider_campuses:
-#             for l in range(num_campuses):
-#                 cost += cvxpy.square(demand[j, k, l] - cvxpy.sum(x[:, j, k, l]))
-#             else:
-#                 cost += cvxpy.square(demand[j, k] - cvxpy.sum(x[:, j, k]))
-# objective = cvxpy.Minimize(cost)
-
-constraints = availability_constr + no_multiple_bookings_constr + weekly_max_constr
+# objective = cvxpy.Minimize(cvxpy.sum(cvxpy.abs(demand - cvxpy.sum(x, axis=0))))
+constraints = []
+constraints.extend(availability_constr)
+constraints.extend(no_multiple_bookings_constr)
+constraints.extend(weekly_max_constr)
+constraints.extend(daily_max_constr)
+constraints.extend(break_constr)
+constraints.extend(desired_hours_constr)
+constraints.extend(budget_constr)
 prob = cvxpy.Problem(objective, constraints)
 
 # Solve the problem
 print("Solving optimization problem...")
-# prob.solve(verbose=True)
+if consider_campuses:
+    print("This could take around 30 minutes.")
 prob.solve(solver='GLPK_MI', verbose=True)
 # prob.solve(solver='GUROBI', verbose=True)
 
@@ -178,22 +216,21 @@ destination_filename = "ans.csv"
 with open(destination_filename, mode = "w", newline = "") as f:
     writer = csv.writer(f)
     if consider_campuses:
-        #TODO
-        print("NOT IMPLEMENTED")
+        for l in range(num_campuses):
+            if l > 0:
+                writer.writerow([])
+            writer.writerow([campus_names[l]])
+            for k in range(num_subjects):
+                writer.writerow(np.concatenate(([subject_names[k]], timeslot_names)))
+                for i in range(num_tutors):
+                    writer.writerow(np.concatenate(([tutor_names[i]], x.value[i, :, k, l])))
     else:
         for k in range(num_subjects):
             if k > 0:
                 writer.writerow([])
             writer.writerow(np.concatenate(([subject_names[k]], timeslot_names)))
             for i in range(num_tutors):
-                writer.writerow(x.value[i,:,k])
-
-
+                writer.writerow(np.concatenate(([tutor_names[i]], x.value[i,:,k])))
+print("Result written to", destination_filename)
 
 input("Press ENTER to quit")
-
-# while (True):
-#     n = input("Enter q to quit")
-#     if (n == "q"):
-#         break
-
