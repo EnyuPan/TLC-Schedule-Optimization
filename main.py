@@ -191,7 +191,10 @@ budget_constr.append(cvxpy.sum(x) <= budget)
 print("Creating optimization problem...")
 
 # objective = cvxpy.Minimize(cvxpy.sum_squares(demand - cvxpy.sum(x, axis=0)))
-objective = cvxpy.Minimize(cvxpy.sum(demand - cvxpy.sum(x, axis=0)))
+underage = cvxpy.pos(demand - cvxpy.sum(x, axis=0))
+overage = cvxpy.pos(cvxpy.sum(x, axis=0) - demand)
+objective = cvxpy.Minimize(cvxpy.sum(underage + overage))
+# objective = cvxpy.Minimize(cvxpy.sum(demand - cvxpy.sum(x, axis=0)))
 # objective = cvxpy.Minimize(cvxpy.sum(cvxpy.abs(demand - cvxpy.sum(x, axis=0))))
 constraints = []
 constraints.extend(availability_constr)
