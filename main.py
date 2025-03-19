@@ -14,21 +14,9 @@ start_time = time.time()
 import csv
 print("module imported: csv, time used: " + str(time.time() - start_time) + " seconds")
 
-# start_time = time.time()
-# import dask.array as darray
-# print("module imported: dask.array, time used: " + str(time.time() - start_time) + " seconds")
-
-# start_time = time.time()
-# import dask.dataframe as df
-# print("module imported: dask.dataframe, time used: " + str(time.time() - start_time) + " seconds")
-
 start_time = time.time()
 import cvxpy
 print("module imported: cvxpy, time used: " + str(time.time() - start_time) + " seconds")
-
-# start_time = time.time()
-# from dask.diagnostics import ProgressBar
-# print("module imported: dask.diagnostics, time used: " + str(time.time() - start_time) + " seconds")
 
 # Toggle the campus dimension
 consider_campuses = False
@@ -42,7 +30,7 @@ while True:
         break
 
 # Dimension constants
-num_tutors = 53 # number of tutors (one tutor across different schedule is counted as one)
+num_tutors = 53 # number of tutors (one tutor across different schedules is counted as one)
 num_daily_timeslots = 24 # number of 30-minute timeslots in a day
 num_days = 7 # number of days in a week
 num_timeslots = num_days * num_daily_timeslots # number of 30-minute timeslots in a week
