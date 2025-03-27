@@ -37,6 +37,23 @@ num_timeslots = num_days * num_daily_timeslots # number of 30-minute timeslots i
 num_subjects = 6 # number of distinct tutoring subjects e.g. English, Math, Accounting
 num_campuses = 6 # includes Online and each in-person campus
 
+while True:
+    print("Dimension constants are set as follows:")
+    print("\tNumber of tutors: ", num_tutors, " (note: one tutor across different schedules is counted as one)")
+    print("\tNumber of 30-minute timeslots in a day: ", num_daily_timeslots)
+    print("\tNumber of days in a week: ", num_days)
+    print("\tNumber of subjects: ", num_subjects)
+    print("\tNumber of campuses: ", num_campuses)
+    s = input("Modify dimension constants? (Y/N): ")
+    if s == "N" or s == "n":
+        break
+    elif s == "Y" or s == "y":
+        num_tutors = input("\tEnter number of tutors: ")
+        num_daily_timeslots = input("\tEnter number of 30-minute timeslots in a day: ")
+        num_days = input("\tEnter number of days in a week: ")
+        num_subjects = input("\tEnter number of subjects: ")
+        num_campuses = input("\tEnter number of campuses: ")
+
 # Constraint constants
 budget = 1000 # total number of budgeted work hours for all tutors collectively
 weekly_limit = 48 # each tutor works no more than 24 hours (48 timeslots) a week
@@ -45,6 +62,25 @@ consecutive_time_limit = 10 # each tutor works no more than 5 hours (10 timeslot
 in_person_opening_time = 3 # in-person schedules start at 10 AM each day, which is the 3rd time slot of each day
 in_person_closing_time = 16 # in-person schedules end at 5 PM each day, so the last time slot available is the 16th of each day
 
+while True:
+    print("Constraint constants are set as follows:")
+    print("\tBudget: ", budget, "(total number of budgeted work hours for all tutors collectively)")
+    print("\tMax number of hours per week for each tutor: ", weekly_limit)
+    print("\tMax number of hours per day for each tutor: ", daily_limit)
+    print("\tMax number of consecutive hours for each tutor: ", consecutive_time_limit)
+    print("\tIndex of timeslot at which in-person centres open: ", in_person_opening_time, " (where 1 = 9:00 AM, 2 = 9:30 AM, etc.)")
+    print("\tIndex of timeslot at which in-person centres close: ", in_person_closing_time, " (where 1 = 9:00 AM, 2 = 9:30 AM, etc.)")
+    s = input("Modify constraint constants? (Y/N): ")
+    if s == "N" or s == "n":
+        break
+    elif s == "Y" or s == "y":
+        budget = input("\tEnter budget: ")
+        weekly_limit = input("\tEnter max number of hours per week for each tutor: ")
+        daily_limit = input("\tEnter max number of hours per day for each tutor: ")
+        consecutive_time_limit = input("\tEnter max number of consecutive hours for each tutor: ")
+        in_person_opening_time = input("\tEnter index of timeslot at which in-person centres open: ")
+        in_person_closing_time = input("\tIndex of timeslot at which in-person centres close: ")
+
 # Import data as 2D arrays
 print("Importing demand and availability spreadsheets...")
 try:
@@ -52,8 +88,8 @@ try:
         demand_cells = pd.read_csv("demand_matrix_3d.csv", header=None)
         availability_cells = pd.read_csv("availability_matrix_4d.csv", header=None)
     else:
-        demand_cells = pd.read_csv("Lite version/demand_matrix_2d.csv", header=None)
-        availability_cells = pd.read_csv("Lite version/availability_matrix_3d_loweravailability.csv", header=None)
+        demand_cells = pd.read_csv("demand_matrix_2d.csv", header=None)
+        availability_cells = pd.read_csv("availability_matrix_3d_loweravailability.csv", header=None)
     desired_hours_cells = pd.read_csv("desired_hours.csv", header=None)
 except Exception as error:
     print("Error when reading csv files", error)
