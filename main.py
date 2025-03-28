@@ -48,11 +48,12 @@ while True:
     if s == "N" or s == "n":
         break
     elif s == "Y" or s == "y":
-        num_tutors = input("\tEnter number of tutors: ")
-        num_daily_timeslots = input("\tEnter number of 30-minute timeslots in a day: ")
-        num_days = input("\tEnter number of days in a week: ")
-        num_subjects = input("\tEnter number of subjects: ")
-        num_campuses = input("\tEnter number of campuses: ")
+        num_tutors = int(input("\tEnter number of tutors: "))
+        num_daily_timeslots = int(input("\tEnter number of 30-minute timeslots in a day: "))
+        num_days = int(input("\tEnter number of days in a week: "))
+        num_timeslots = num_days * num_daily_timeslots
+        num_subjects = int(input("\tEnter number of subjects: "))
+        num_campuses = int(input("\tEnter number of campuses: "))
 
 # Constraint constants
 budget = 1000 # total number of budgeted work hours for all tutors collectively
@@ -74,12 +75,12 @@ while True:
     if s == "N" or s == "n":
         break
     elif s == "Y" or s == "y":
-        budget = input("\tEnter budget: ")
-        weekly_limit = input("\tEnter max number of hours per week for each tutor: ")
-        daily_limit = input("\tEnter max number of hours per day for each tutor: ")
-        consecutive_time_limit = input("\tEnter max number of consecutive hours for each tutor: ")
-        in_person_opening_time = input("\tEnter index of timeslot at which in-person centres open: ")
-        in_person_closing_time = input("\tIndex of timeslot at which in-person centres close: ")
+        budget = int(input("\tEnter budget: "))
+        weekly_limit = int(input("\tEnter max number of hours per week for each tutor: "))
+        daily_limit = int(input("\tEnter max number of hours per day for each tutor: "))
+        consecutive_time_limit = int(input("\tEnter max number of consecutive hours for each tutor: "))
+        in_person_opening_time = int(input("\tEnter index of timeslot at which in-person centres open: "))
+        in_person_closing_time = int(input("\tEnter index of timeslot at which in-person centres close: "))
 
 # Import data as 2D arrays
 print("Importing demand and availability spreadsheets...")
