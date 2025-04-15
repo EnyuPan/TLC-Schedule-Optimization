@@ -56,7 +56,7 @@ while True:
         num_campuses = int(input("\tEnter number of campuses: "))
 
 # Constraint constants
-budget = 1000 # total number of budgeted work hours for all tutors collectively
+budget = 6000 # total number of budgeted work hours for all tutors collectively
 weekly_limit = 48 # each tutor works no more than 24 hours (48 timeslots) a week
 daily_limit = 14 # each tutor works no more than 7 hours (14 timeslots) a day
 consecutive_time_limit = 10 # each tutor works no more than 5 hours (10 timeslots) consecutively without break
@@ -136,8 +136,6 @@ else:
 # Construct desired hours matrix
 desired_hours = desired_hours_cells.iloc[:, 1].to_numpy()
 
-#TODO: use absolute path referencing with the csv files
-
 # Decision variables
 if consider_campuses:
     x = cvxpy.Variable((num_tutors, num_timeslots, num_subjects, num_campuses), boolean=True)
@@ -215,10 +213,10 @@ budget_constr.append(cvxpy.sum(x) <= budget)
 # Optimization problem
 print("Creating optimization problem...")
 
-# objective = cvxpy.Minimize(cvxpy.sum_squares(demand - cvxpy.sum(x, axis=0)))
 underage = cvxpy.pos(demand - cvxpy.sum(x, axis=0))
 overage = cvxpy.pos(cvxpy.sum(x, axis=0) - demand)
-objective = cvxpy.Minimize(cvxpy.sum(underage + overage))
+objective = cvxpy.Minimize(cvxpy.sum(underage + 2 * overage))
+# objective = cvxpy.Minimize(cvxpy.sum_squares(demand - cvxpy.sum(x, axis=0)))
 # objective = cvxpy.Minimize(cvxpy.sum(demand - cvxpy.sum(x, axis=0)))
 # objective = cvxpy.Minimize(cvxpy.sum(cvxpy.abs(demand - cvxpy.sum(x, axis=0))))
 constraints = []
@@ -236,7 +234,6 @@ print("Solving optimization problem...")
 if consider_campuses:
     print("This could take around 30 minutes.")
 prob.solve(solver='GLPK_MI', verbose=True)
-# prob.solve(solver='GUROBI', verbose=True)
 
 print(prob.status)
 print("Objective value:", prob.value)
