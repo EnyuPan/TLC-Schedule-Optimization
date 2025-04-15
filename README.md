@@ -12,15 +12,17 @@ Two aspects of the project were worked on between Fall 2024 and Winter 2025:
 
 - Implementing and solving the integer program according to the formulation, using the demand data from the first part. The Python script (`main.py`), made by Enyu, implements this integer program and solves it using the `cvxpy` library. This is the part this documentation focuses on.
 
-The program takes a long time to run (~30 minutes) if campus is considered; when last tested, it takes around ~17 minutes if campus is not considered.
+The program takes a long time to run (30 minutes or more) if campus is considered; when last tested, it takes up to 17 minutes if campus is not considered.
 
 ## Requirements
 
-To run the Python script, you need Python installed, as well as the following libraries:
+To run the Python script (`main.py`), you need Python installed, as well as the following libraries:
 * numpy
 * pandas
 * cvxpy
     * The cvxpy library formulates the integer program and delegates the job of solving it to a specific solver. The GLPK_MI solver, for handling mixed-integer programs, is used in the Python script by default and should be installed automatically upon installing the cvxpy library. Other solvers can also be used, but they might require separate installation or licensing. See https://www.cvxpy.org/tutorial/solvers/index.html for a list of solvers supported by the cvxpy library and https://www.cvxpy.org/install/ for how to install them.
+
+Numpy and pandas are not heavily used; pandas is only used for parsing the csv files as dataframes, which are then turned into numpy arrays for easier operations. The csv module is used for exporting the data in the end. The cvxpy library handles the main work of solving the integer program.
 
 You can install these libraries using pip on the terminal:
 ```
@@ -50,47 +52,30 @@ The input files are as follows:
     * *The order in which the tutors are listed must be the same as in the availability matrix.*
     * The file name should be `desired_hours.csv`.
 
+## Configuration
+The program gives the user the following prompts when run:
+
+* Consider campuses as a dimension? (Y/N)
+    * If campus is considered, the program uses the 4D formulation (tutor, timeslot, subject, campus) and reads from `demand_matrix_3d.csv` and `availability_matrix_4d.csv`.
+    * If campus is not considered, the program uses the 3D formulation (tutor, timeslot, subject) and reads from `demand_matrix_2d.csv` and `availability_matrix_3d.csv`.
+
+* Dimension Constants: The program displays the default values for dimensions (number of tutors, timeslots, subjects, and campuses) and gives the user the option to enter new values for them if needed. The dimension constants will be used when parsing the demand and availability matrices. When the program is run, the user will be given the option to modify the constants. **These constants must match the actual dimensions of the csv files.** Otherwise, there will be undefined behavior when parsing the spreadsheets. You need to change num_tutors to reflect the actual number of tutors, and change num_daily_timeslot to reflect the actual number of 30-minute timeslots in a day, etc.
+
+* Constraint Constants: The program displays the default values for constraints (budget, weekly/daily/consecutive hour limits, etc.) and gives the user the option to enter new values for them if needed.
+
 ## Output
 
 The program writes the schedule to a csv file, named `ans.csv` by default.
 
-## Explanation of the code
-
-```
-import time
-
-print("Importing modules...")
-
-start_time = time.time()
-import numpy as np
-print("module imported: numpy, time used: " + str(time.time() - start_time) + " seconds")
-
-start_time = time.time()
-import pandas as pd
-print("module imported: pandas, time used: " + str(time.time() - start_time) + " seconds")
-
-start_time = time.time()
-import csv
-print("module imported: csv, time used: " + str(time.time() - start_time) + " seconds")
-
-start_time = time.time()
-import cvxpy
-print("module imported: cvxpy, time used: " + str(time.time() - start_time) + " seconds")
-```
-
-Imports the necessary libraries. Numpy and pandas are not heavily used; pandas is only used for parsing the csv files as dataframes, which are then turned into numpy arrays for easier operations. The csv module is used for exporting the data in the end. The cvxpy library handles the main work of solving the integer program, by calling upon a solver such as GLPK_MI.
-
-The dimension constants will be used when parsing the demand and availability matrices. When the program is run, the user will be given the option to modify the constants. **These constants must match the actual dimensions of the csv files.** Otherwise, there will be undefined behavior when parsing the spreadsheets. You need to change num_tutors to reflect the actual number of tutors, and change num_daily_timeslot to reflect the actual number of 30-minute timeslots in a day, etc.
-
-The csv files are read in as pandas dataframes. This is the only place where the pandas library is used in the program: to hold the spreadsheet data in dataframes until they are converted to numpy arrays later. There might be a more efficient way to do this.
-The parsing of the csv files is a little inelegant. Perhaps there are ways to improve it.
-
-The constraints are explained in the file `Schedule Optimization Formulation 2.pdf`.
-
 ## Areas for further work
 
-1. Since integer programming scales up exponentially, having a huge integer program with many variables (as we do here!) can make the runtime horribly slow. It may be more efficient to run the program *iteratively*, e.g., the program only considers one campus in each run, but we would run this program multiple times, once for each campus, with different inputs. This could theoretically take less time (since 2^n + 2^m is generally less than 2^(n+m)), but there may be more consideration with having to adjust the availabilities after having run the program on the first campus. Specifically there may be complications with the online schedule, which tends to overlap a lot with the in-person schedules, while the in-person schedules have less overlap with each other.
+* When tested with the example matrices, there is the problem that when many schedules (i.e., combinations of subjects and campuses) are considered, only the first few schedules are filled out, while few or no tutors are assigned to the later schedules. Also, since the weekly maximum constraint limits each tutor to at most 48 timeslots a week, a tutor often has all 48 timeslots allotted to the same subject and campus, and has no hours allotted to other subjects and campuses. This is likely because when there is freedom in choosing where to place the 48 allotted timeslots, the program defaults to placing them in the first few schedules, and there is no incentive for spreading them out across schedules. This should not be a significant problem in practice since most tutors are mainly relegated to one subject and one campus, although tutors who work both online and in person do need to be spread out between at least two campuses.
 
-2. The desired hours matrix is currently only used in a constraint that requires tutors do not work for more than their desired hours. However, the program might assign all available hours to one tutor, and assign no hours to another tutor. It might be possible to add a minimum number of hours for each tutor (though this has the risk of making the integer program infeasible) or to integrate the desired hours into the objective function somehow (though it is challenging to decide how to weigh the desired hours against the demand).
+* Since integer programming scales up exponentially, having a huge integer program with many variables (as we do here!) can make the runtime horribly slow. Some possible ways to remedy this:
+    * It may be more efficient to run the program *iteratively*, e.g., the program only considers one campus in each run, but we would run this program multiple times, once for each campus, with different inputs. This could theoretically take less time (since 2^n + 2^m is generally less than 2^(n+m)), but there may be more consideration with having to adjust the availabilities after having run the program on the first campus. Specifically there may be complications with the online schedule, which tends to overlap a lot with the in-person schedules, while the in-person schedules have less overlap with each other.
+    * Since considering campuses causes the program to become a lot more expensive, it may be sufficient to consider only one online schedule and one in-person schedule instead of having one block for each campus, since most tutors work at mainly one campus.
+    * We could also reduce the number of subjects. Study Skills is not typically in high demand and is highly tutor-dependent, and Accounting could be removed since it is mainly limited to the 200 King campus and most math tutors that work at 200 King can also tutor accounting.
 
-3. The output schedule is formatted in the same way as the availability matrix, with 1's and 0's representing whether a tutor is working at a certain timeslot for a certain subject at a certain campus. If a different output format could be more readable (e.g. "Areej: Mon 9 - 11 AM, Wed 11 AM - 3 PM"), then the output section of the program could be revised to account for different formats.
+* The desired hours matrix is currently only used in a constraint that requires tutors do not work for more than their desired hours. However, the program might assign all available hours to one tutor, and assign no hours to another tutor. It might be possible to add a minimum number of hours for each tutor (though this has the risk of making the integer program infeasible) or to integrate the desired hours into the objective function somehow (though it is challenging to decide how to weigh the desired hours against the demand).
+
+* The output schedule is formatted in the same way as the availability matrix, with 1's and 0's representing whether a tutor is working at a certain timeslot for a certain subject at a certain campus. If a different output format could be more readable (e.g. "Areej: Mon 9 - 11 AM, Wed 11 AM - 3 PM"), then the output section of the program could be revised to account for different formats.
