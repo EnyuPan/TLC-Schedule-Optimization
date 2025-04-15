@@ -10,7 +10,7 @@ Two aspects of the project were worked on between Fall 2024 and Winter 2025:
 
 - Analyzing appointment data on WCO using a linear regression model and predicting the demand for tutoring. This was implemented by Sebastian in R. Its documentation can be found at `R doc/R documentation.pdf`.
 
-- Implementing and solving the integer program according to the formulation, using the demand data from the first part. The Python script (`main.py`), made by Enyu, implements this integer program and solves it using the `cvxpy` library. This is the part this documentation focuses on.
+- Implementing and solving the integer program according to the formulation, using the demand data from the first part. The Python script (`main.py`), made by Enyu, implements this integer program and solves it using the `cvxpy` library.
 
 The program takes a long time to run (30 minutes or more) if campus is considered; when last tested, it takes up to 17 minutes if campus is not considered.
 
@@ -59,9 +59,20 @@ The program gives the user the following prompts when run:
     * If campus is considered, the program uses the 4D formulation (tutor, timeslot, subject, campus) and reads from `demand_matrix_3d.csv` and `availability_matrix_4d.csv`.
     * If campus is not considered, the program uses the 3D formulation (tutor, timeslot, subject) and reads from `demand_matrix_2d.csv` and `availability_matrix_3d.csv`.
 
-* Dimension Constants: The program displays the default values for dimensions (number of tutors, timeslots, subjects, and campuses) and gives the user the option to enter new values for them if needed. The dimension constants will be used when parsing the demand and availability matrices. When the program is run, the user will be given the option to modify the constants. **These constants must match the actual dimensions of the csv files.** Otherwise, there will be undefined behavior when parsing the spreadsheets. You need to change num_tutors to reflect the actual number of tutors, and change num_daily_timeslot to reflect the actual number of 30-minute timeslots in a day, etc.
+* Dimension Constants: The program displays the default values for dimensions (number of tutors, timeslots, subjects, and campuses) and gives the user the option to enter new values for them if needed. The dimension constants will be used when parsing the demand and availability matrices. When the program is run, the user will be given the option to modify the constants. **These constants must match the actual dimensions of the csv files.** Otherwise, there will be undefined behavior when parsing the spreadsheets. You need to change num_tutors to reflect the actual number of tutors, and change num_daily_timeslot to reflect the actual number of 30-minute timeslots in a day, etc. The dimension constants are:
+    * `num_tutors`: number of tutors (one tutor across different schedules is counted as one)
+    * `num_daily_timeslots`: number of 30-minute timeslots in a day
+    * `num_days`: number of days in a week
+    * `num_subjects`: number of distinct tutoring subjects e.g. English, Math, Accounting
+    * `num_campuses`: number of campuses
 
-* Constraint Constants: The program displays the default values for constraints (budget, weekly/daily/consecutive hour limits, etc.) and gives the user the option to enter new values for them if needed.
+* Constraint Constants: The program displays the default values for constraints (budget, weekly/daily/consecutive hour limits, etc.) and gives the user the option to enter new values for them if needed. The constraint constants are:
+    * `budget`: total number of budgeted work hours for all tutors collectively
+    * `weekly_limit`: each tutor works no more than 24 hours (48 timeslots) a week
+    * `daily_limit`: each tutor works no more than 7 hours (14 timeslots) a day
+    * `consecutive_time_limit`: each tutor works no more than 5 hours (10 timeslots) consecutively without break
+    * `in_person_opening_time`: in-person schedules start at 10 AM each day, which is the 3rd time slot of each day
+    * `in_person_closing_time`: in-person schedules end at 5 PM each day, so the last time slot available is the 16th of each day
 
 ## Output
 
@@ -77,5 +88,7 @@ The program writes the schedule to a csv file, named `ans.csv` by default.
     * We could also reduce the number of subjects. Study Skills is not typically in high demand and is highly tutor-dependent, and Accounting could be removed since it is mainly limited to the 200 King campus and most math tutors that work at 200 King can also tutor accounting.
 
 * The desired hours matrix is currently only used in a constraint that requires tutors do not work for more than their desired hours. However, the program might assign all available hours to one tutor, and assign no hours to another tutor. It might be possible to add a minimum number of hours for each tutor (though this has the risk of making the integer program infeasible) or to integrate the desired hours into the objective function somehow (though it is challenging to decide how to weigh the desired hours against the demand).
+
+* The budget is currently a single integer representing the total number of hours for all tutors. In practice, there may be separate budgets for each subject.
 
 * The output schedule is formatted in the same way as the availability matrix, with 1's and 0's representing whether a tutor is working at a certain timeslot for a certain subject at a certain campus. If a different output format could be more readable (e.g. "Areej: Mon 9 - 11 AM, Wed 11 AM - 3 PM"), then the output section of the program could be revised to account for different formats.

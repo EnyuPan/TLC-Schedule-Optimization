@@ -232,7 +232,7 @@ prob = cvxpy.Problem(objective, constraints)
 # Solve the problem
 print("Solving optimization problem...")
 if consider_campuses:
-    print("This could take around 30 minutes.")
+    print("This could take 30 minutes or more.")
 prob.solve(solver='GLPK_MI', verbose=True)
 
 print(prob.status)
