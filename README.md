@@ -14,6 +14,10 @@ Two aspects of the project were worked on between Fall 2024 and Winter 2025:
 
 The program takes a long time to run (30 minutes or more) if campus is considered; when last tested, it takes up to 17 minutes if campus is not considered.
 
+We built an R script that takes in Data from our booking website (WCO) and uses it to build a linear regression model to predict the demand.
+
+This program works by taking the data from WCO, which stores by appointment, and then transforms it to be stored by appointment times.
+
 ## Requirements
 
 To run the Python script (`main.py`), you need Python installed, as well as the following libraries:
@@ -28,6 +32,10 @@ You can install these libraries using pip on the terminal:
 ```
 pip install numpy pandas cvxpy
 ```
+For the R code, you will need the following installed:
+
+* R, an open source Statistics based language
+* And R-studio, which while not required, is a useful IDE for R, and is used to compile the documnetation for the project.
 
 ## Inputs
 
@@ -92,3 +100,12 @@ The program writes the schedule to a csv file, named `ans.csv` by default.
 * The budget is currently a single integer representing the total number of hours for all tutors. In practice, there may be separate budgets for each subject.
 
 * The output schedule is formatted in the same way as the availability matrix, with 1's and 0's representing whether a tutor is working at a certain timeslot for a certain subject at a certain campus. If a different output format could be more readable (e.g. "Areej: Mon 9 - 11 AM, Wed 11 AM - 3 PM"), then the output section of the program could be revised to account for different formats.
+
+* Currently, time is allocated by generating all days between the start and end date given, and gived all possible slots from 9AM-9PM for every schedule which. The problem with this is that different schedules work on different hours (like most inperson schedules working from 10-5) and generates for dates  where the schedule might be closed (like in person not being open on weekdays.) 
+* We also need to find a way to filter out dates- the TLC is not open every day of the year, and the 0 results can affect the model significantly, and since there is currently no interaction terms, can affer the paramaters of different schedules. There needs to be a way to filter out when the scheudle isn't open on a schedule basis
+
+* For this section, I call the number of appointments as n, and the number of sessions as m.
+Currently, our appointment counter runs in O(nm) time. We could implememnt a faster algorithm that uses a binary search algorithm to find the time and day an appointment takes place, and that would run in O(nlog(m)) which, for large data pools, is significantly faster.
+
+*Currently, the R code genereates a linear model in R, which is not the format required for main.py. To ammend this, there needs to be a function that creates an output file that could be inputted into the demand matrix for the optimization program. To do this, you should predict for each week, campus and subject and then create a CSV output as shown on the Demand matrix (you can see the example in ______(file name) so that it can be used an input for main.py.
+
