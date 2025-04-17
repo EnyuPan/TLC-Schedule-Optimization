@@ -8,22 +8,22 @@ Part of the problem's integer program formulation was done by Louise and Nitya, 
 
 Two aspects of the project were worked on between Fall 2024 and Winter 2025:
 
-- Analyzing appointment data on WCO, our booking website, using a linear regression model and predicting the demand for tutoring. This was implemented by Sebastian in R. Its documentation can be found at `R doc/R documentation.pdf`.
+- Demand prediction: analyzing appointment data on WCO, our booking website, using a linear regression model and predicting the demand for tutoring. This was implemented by Sebastian in the file `Demand Prediction\Schedule optim.R`. Its documentation can be found at `Demand Prediction\R documentation.pdf`.
 
-- Implementing and solving the integer program according to the formulation, using the demand data from the first part. The Python script (`main.py`), made by Enyu, implements this integer program and solves it using the `cvxpy` library.
+- Schedule creation: implementing and solving the integer program according to the formulation, using the demand data outputted by the first part. The Python script (`main.py`), made by Enyu, implements this integer program and solves it using the `cvxpy` library.
 
-The R script takes in Data from our booking website and uses it to build a linear regression model to predict the demand. It works by taking the data from WCO, which stores by appointment, and then transforms it to be stored by appointment times.
+The demand prediction program takes in data from WCO and uses it to build a linear regression model to predict the demand. It works by taking the data from WCO, which stores information by individual appointments, and transforming it to be stored by appointment times.
 
-The Python script takes a long time to run (30 minutes or more) if campus is considered; when last tested, it takes up to 17 minutes if campus is not considered.
+The schedule creation Python script takes a long time to run (30 minutes or more) if campus is considered; when last tested, it takes up to 17 minutes if campus is not considered.
 
 ## Requirements
 
-For the R script, you will need the following installed:
+For the *demand prediction* R script (`Demand Prediction\Schedule optim.R`), you will need the following installed:
 
 * R, an open-source Statistics-based language
-* R-studio, which while not required, is a useful IDE for R, and was used to compile the documentation for the R script (`R doc\R documentation.pdf`)
+* R-studio, which while not required, is a useful IDE for R, and was used to compile the documentation for the R script.
 
-To run the Python script (`main.py`), you need Python installed, as well as the following libraries:
+To run the *schedule creation* Python script (`main.py`), you need Python installed, as well as the following libraries:
 
 * numpy
 * pandas
@@ -39,7 +39,7 @@ pip install numpy pandas cvxpy
 
 ## Inputs
 
-The program takes in three files: **demand**, **availability**, and **desired hours** spreadsheets. The information they represent is described in more detail in the file `Schedule Optimization Formulation 2.pdf`. They must be placed in the same directory as the script file (`main.py`), and *they must be in the same format as the example spreadsheets in this folder* (described below).
+The schedule creation script `main.py` takes in three files: **demand**, **availability**, and **desired hours** spreadsheets. The information they represent is described in more detail in the file `Schedule Optimization Formulation 2.pdf`. They must be placed in the same directory as the script file (`main.py`), and *they must be in the same format as the example spreadsheets in this folder* (described below).
 
 Either three or four dimensions will be considered in the optimization: **tutor**, **subject**, **timeslot**, and **campus (*optional*)**. When run, the program will prompt the user whether to consider campus as a dimension or not. Depending on whether campus is considered, the input files would have to be in different formats and have different names.
 
@@ -61,7 +61,7 @@ The input files are as follows:
     * The file name should be `desired_hours.csv`.
 
 ## Configuration
-The program `main.py` gives the user the following prompts when run:
+The schedule creation program `main.py` gives the user the following prompts when run:
 
 * Consider campuses as a dimension? (Y/N)
     * If campus is considered, the program uses the 4D formulation (tutor, timeslot, subject, campus) and reads from `demand_matrix_3d.csv` and `availability_matrix_4d.csv`.
@@ -88,23 +88,23 @@ The program writes the schedule to a csv file, named `ans.csv` by default.
 
 ## Areas for further work
 
+* Currently, the appointment counter in the R program runs in O(nm) time, where n is the number of appointments and m is the number of timeslots. We could implememnt a faster algorithm that uses a binary search algorithm to find the time and day an appointment takes place, and that would run in O(nlog(m)) which, for large data pools, is significantly faster.
+
+* Currently, the R code genereates a linear model in R, which is not the format required for `main.py`. To ammend this, there needs to be a function that creates an output file that could be inputted into the demand matrix for the optimization program. To do this, you should predict for each week, campus and subject and then create a CSV output as shown on the Demand matrix (see the example spreadsheets `demand_matrix_2d.csv` and `demand_matrix_3d.csv`) so that it can be used an input for `main.py`.
+
 * When tested with the example matrices, there is the problem that when many schedules (i.e., combinations of subjects and campuses) are considered, only the first few schedules are filled out, while few or no tutors are assigned to the later schedules. Also, since the weekly maximum constraint limits each tutor to at most 48 timeslots a week, a tutor often has all 48 timeslots allotted to the same subject and campus, and has no hours allotted to other subjects and campuses. This is likely because when there is freedom in choosing where to place the 48 allotted timeslots, the program defaults to placing them in the first few schedules, and there is no incentive for spreading them out across schedules. This should not be a significant problem in practice since most tutors are mainly relegated to one subject and one campus, although tutors who work both online and in person do need to be spread out between at least two campuses.
 
 * Since integer programming scales up exponentially, having a huge integer program with many variables (as we do here!) can make the runtime horribly slow. Some possible ways to remedy this:
     * It may be more efficient to run the program *iteratively*, e.g., the program only considers one campus in each run, but we would run this program multiple times, once for each campus, with different inputs. This could theoretically take less time (since 2<sup>n</sup> + 2<sup>m</sup> is generally less than 2<sup>n+m</sup>), but there may be more consideration with having to adjust the availabilities after having run the program on the first campus. Specifically there may be complications with the online schedule, which tends to overlap a lot with the in-person schedules, while the in-person schedules have less overlap with each other.
-    * Since considering campuses causes the program to become a lot more expensive, it may be sufficient to consider only one online schedule and one in-person schedule instead of having one block for each campus, since most tutors work at mainly one campus.
-    * We could also reduce the number of subjects. Study Skills is not typically in high demand and is highly tutor-dependent, and Accounting could be removed since it is mainly limited to the 200 King campus and most math tutors that work at 200 King can also tutor accounting.
+    * Since considering campuses causes the program to become a lot more expensive, it may be sufficient to consider only one online schedule and one in-person schedule instead of having one block for each campus, since most tutors work mainly at one campus.
+    * We could also reduce the number of subjects. Study Skills is not typically in high demand and is very tutor-dependent, and Accounting could be removed since it is mainly limited to the 200 King campus, and most math tutors at 200 King can also tutor accounting.
 
 * The desired hours matrix is currently only used in a constraint that requires tutors do not work for more than their desired hours. However, the program might assign all available hours to one tutor, and assign no hours to another tutor. It might be possible to add a minimum number of hours for each tutor (though this has the risk of making the integer program infeasible) or to integrate the desired hours into the objective function somehow (though it is challenging to decide how to weigh the desired hours against the demand).
 
-* The budget is currently a single integer representing the total number of hours for all tutors. In practice, there may be separate budgets for each subject.
+* The budget is currently a single integer representing the total number of hours that can be allocated across all tutors. In practice, there may be separate budgets for each subject, which would require updating the budget constraint.
 
 * The output schedule is formatted in the same way as the availability matrix, with 1's and 0's representing whether a tutor is working at a certain timeslot for a certain subject at a certain campus. If a different output format could be more readable (e.g. "Areej: Mon 9 - 11 AM, Wed 11 AM - 3 PM"), then the output section of the program could be revised to account for different formats.
 
 * Currently, time is allocated by generating all days between the start and end date given, and gave all possible slots from 9AM - 9PM for every schedule which. But different schedules work on different hours (like most in-person schedules working from 10-5), and the program generates for dates even where the schedule might be closed (like in-person not being open on weekdays.)
 
 * We also need to find a way to filter out dates - the TLC is not open every day of the year, and the 0 results can affect the model significantly, and since there is currently no interaction terms, can affect the paramaters of different schedules. There needs to be a way to filter out when the scheudle isn't open on a schedule basis.
-
-* Currently, our appointment counter runs in O(nm) time, where n is the number of appointments and m is the number of timeslots. We could implememnt a faster algorithm that uses a binary search algorithm to find the time and day an appointment takes place, and that would run in O(nlog(m)) which, for large data pools, is significantly faster.
-
-* Currently, the R code genereates a linear model in R, which is not the format required for `main.py`. To ammend this, there needs to be a function that creates an output file that could be inputted into the demand matrix for the optimization program. To do this, you should predict for each week, campus and subject and then create a CSV output as shown on the Demand matrix (see the example spreadsheets `demand_matrix_2d.csv` and `demand_matrix_3d.csv`) so that it can be used an input for `main.py`.
