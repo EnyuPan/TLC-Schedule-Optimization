@@ -39,7 +39,7 @@ pip install numpy pandas cvxpy
 
 ## Inputs
 
-The demand prediction script requires only 1 input file: The exported Excel file from "system data export." It requires the same export that is used for 1-on-1 statistics, which is the default.
+The demand prediction script requires only 1 input file: The exported Excel file from "system data export" from WCO. It requires the same export that is used for 1-on-1 statistics, which is the default.
 
 The schedule creation script `main.py` takes in three files: **demand**, **availability**, and **desired hours** spreadsheets. The information they represent is described in more detail in the file `Schedule Optimization Formulation 2.pdf`. They must be placed in the same directory as the script file (`main.py`), and *they must be in the same format as the example spreadsheets in this folder* (described below).
 
