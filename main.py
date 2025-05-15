@@ -90,7 +90,7 @@ try:
         availability_cells = pd.read_csv("availability_matrix_4d.csv", header=None)
     else:
         demand_cells = pd.read_csv("demand_matrix_2d.csv", header=None)
-        availability_cells = pd.read_csv("availability_matrix_3d_loweravailability.csv", header=None)
+        availability_cells = pd.read_csv("availability_matrix_3d.csv", header=None)
     desired_hours_cells = pd.read_csv("desired_hours.csv", header=None)
 except Exception as error:
     print("Error when reading csv files", error)

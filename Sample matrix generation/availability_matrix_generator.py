@@ -3,11 +3,35 @@ import json
 import random
 from perlin_noise import PerlinNoise
 
-destination_filename = "Lite version/availability_matrix_3d.csv"
+consider_campuses = False
+while True:
+    s = input("Consider campuses as a dimension? (Y/N): ")
+    if s == "Y" or s == "y":
+        consider_campuses = True
+        break
+    elif s == "N" or s == "n":
+        consider_campuses = False
+        break
+
+online = False
+if not(consider_campuses):
+    while True:
+        s = input("Choose between online (O) or in-person (I) schedule: ")
+        if s == "O" or s == "o":
+            online = True
+            break
+        elif s == "I" or s == "i":
+            online = False
+            break
+
+if consider_campuses:
+    destination_filename = "availability_matrix_4d.csv"
+else:
+    destination_filename = "availability_matrix_3d.csv"
 
 availability = []
 
-with open("label_names.json", "r") as labels_f:
+with open("Sample matrix generation/label_names.json", "r") as labels_f:
     labels = json.load(labels_f)
 tutors = labels.get("tutors", [])
 days = labels.get("days", [])
@@ -25,7 +49,7 @@ inperson_start_day = 1
 inperson_end_day = 6
 
 def title_row(title):
-    availability.append([title] + [""] * num_timeslots - 1)
+    availability.append([title] + [""] * (num_timeslots - 1))
 
 def timeslots_row(header, start_hour, end_hour):
     timeslots = [header]
@@ -94,7 +118,13 @@ def make_inperson(consider_campuses=False):
                 availability.append(s)
             empty_row()
 
-make_online()
+if consider_campuses:
+    make_online(consider_campuses=True)
+    make_inperson(consider_campuses=True)
+elif online:
+    make_online(consider_campuses=False)
+else:
+    make_online(consider_campuses=False)
 
 with open(destination_filename, mode='w', newline='') as f:
     writer = csv.writer(f)

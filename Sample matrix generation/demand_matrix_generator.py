@@ -3,11 +3,11 @@ import json
 import random
 from perlin_noise import PerlinNoise
 
-destination_filename = "Lite version/demand_matrix_2d.csv"
+destination_filename = "demand_matrix_2d.csv"
 
 demand = []
 
-with open("label_names.json", "r") as labels_f:
+with open("Sample matrix generation/label_names.json", "r") as labels_f:
     labels = json.load(labels_f)
 days = labels.get("days", [])
 subjects = labels.get("subjects", [])

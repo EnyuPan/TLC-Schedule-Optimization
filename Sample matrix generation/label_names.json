@@ -1,8 +1,8 @@
 {
-    "tutors": ["Andy", "Anjelica", "Areej", "Arianna", "Arnav", "Bernardo", "Caden", "Candice", "David", "Elahe", "Gaya", "Glynne", "Jeremy",
-	"Kunal", "Lauren", "Linda", "Mariia", "Mikaela", "Mownika", "Naira", "Nowreen", "Prabhjot", "Reenu", "Riley", "Ripa", "Sami",
-	"Satareh", "Tanvir", "Toby", "Toren", "Vachara", "Yolanda", "You Li", "Aarushi", "Darrel", "Shiv", "Julia", "Grady", "Vanessa",
-	"Basma", "Gozde", "Enyu", "Miranda", "Tiffany", "Nima", "Rubia", "Ngan", "Sarah", "Catalina", "Sebastian", "Ivan", "Rachel", "Yuntan"
+    "tutors": ["Alice", "Bob", "Carrol", "Diana", "Elon", "Frederick", "George", "Hailey", "Ian", "Jordan", "Katherine", "Lucy", "Morgan",
+	"Norton", "Oscar", "Patrick", "Quinn", "Randy", "Sean", "Theodore", "Uranus", "Victor", "Waterloo", "Xavier", "Youssef", "Zirconium",
+	"Albert", "Bertrand", "Cayley", "Descartes", "Euclid", "Fermat", "Gauss", "Hypatia", "Isaac", "Joe", "Kevin", "Lambert", "Michael",
+	"Nick", "Olivia", "Pythagoras", "Qasim", "Riemann", "Sydney", "Terry", "Utnapishtim", "Victoria", "Will", "Xerxes", "Yann", "Zorq", "Anne"
     ],
     "days": ["Mon", "Tue", "Wed", "Thurs", "Fri", "Sat", "Sun"],
     "subjects": ["English", "Math", "Accounting", "Study Skills", "AutoCAD", "Pharmacology"],
